@@ -3,9 +3,12 @@ const app = express();
 const port = 3000;
 
 const mysql = require("mysql");
+const bodyParser = require("body-parser");
+
+const ejs = require("ejs");
 
 const connection = mysql.createConnection({
-  host: "",
+  host: "localhost",
   user: "",
   password: "",
   database: "",
@@ -68,15 +71,29 @@ connection.connect(function (err) {
   );
 });
 
+app.use(bodyParser.urlencoded({ extended: true }));
+app.set("view engine", "ejs");
 app.get("/", (req, res) => {
-  // 値の取得&ブラウザ表示
-  connection.query(selectAllFromTable, function (err, result, fields) {
+  const sql = "SELECT * FROM users";
+  connection.query(sql, function (err, result, fields) {
     if (err) {
-      console.log("select table failed...");
+      console.log("send data insert failed...");
       throw err;
     }
-    console.log("select table succeed!");
-    res.send(result);
+    res.render("index", { users: result });
+  });
+});
+
+app.post("/", (req, res) => {
+  const sql = "INSERT INTO users SET ?";
+
+  connection.query(sql, req.body, function (err, result, fields) {
+    if (err) {
+      console.log("send data insert failed...");
+      throw err;
+    }
+    console.log("send data insert succeed!");
+    res.send("登録が完了しました。");
   });
 });
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
